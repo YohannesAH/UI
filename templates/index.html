@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Integration</title>
+    <link rel="stylesheet" type="text/css" href="script/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#result').text('Predicted digit: ' + response);
+                    }
+                });
+            });
+
+            $('#language').change(function () {
+                var selectedLanguage = $(this).val();
+                $.ajax({
+                    url: '/convert',
+                    type: 'POST',
+                    data: {language: selectedLanguage},
+                    success: function (response) {
+                        $('#service2-result').text('Service 2 response: ' + response);
+                    }
+                });
+            });
+
+            $('#play-audio').click(function () {
+                $.ajax({
+                    url: '/synthesize',
+                    type: 'POST',
+                    success: function (audioURL) {
+                        var audioPlayer = new Audio(audioURL);
+                        audioPlayer.play();
+                    }
+                });
+            });
+
+            $('#bing-search-form').on('submit', function (event) {
+                event.preventDefault();
+                var query = $('#bing-query').val();
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    success: function (response) {
+                        var currentDate = new Date();
+                        var dayOfMonth = currentDate.getDate();
+                        var month = currentDate.getMonth() + 1;
+                        var year = currentDate.getFullYear();
+                        var searchQuery = response + ' international holidays ' + month + '/' + dayOfMonth + '/' + year;
+
+                        $.ajax({
+                            url: 'https://www.bing.com/search',
+                            type: 'GET',
+                            data: {q: searchQuery},
+                            success: function (response) {
+                                alert('Bing search response: ' + response);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Service Integration</h1>
+    
+    <h2>Upload Image</h2>
+    <form action="/predict" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
+        <input type="submit" value="Predict Digit">
+    </form>
+    <div id="result"></div>
+
+    <h2>Language Selection</h2>
+    <select id="language">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+    </select>
+    <div id="service2-result"></div>
+
+    <h2>Audio Playback</h2>
+    <button id="play-audio">Play Audio</button>
+
+    <h2>Bing Search</h2>
+    <form id="bing-search-form">
+        <input type="text" id="bing-query" placeholder="Enter search query" required>
+        <input type="submit" value="Search">
+    </form>
+</body>
+</html>
